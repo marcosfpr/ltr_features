@@ -10,7 +10,6 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.util.BytesRef;
 
 import ltr.lucene.Frequency;
 import ltr.lucene.TermStats;
@@ -52,8 +51,7 @@ public class IndexInfo {
             Terms terms = indexReader.getTermVector(docId, field);
             if (terms != null && terms.size() > 0) {
                 TermsEnum termsEnum = terms.iterator(null); // access the terms for this field
-                BytesRef t = null;
-                while ((t = termsEnum.next()) != null) {// explore the terms for this field
+                while (termsEnum.next() != null) {// explore the terms for this field
                     DocsEnum docsEnum = termsEnum.docs(null, null); // in this case only one document
                     while (docsEnum.nextDoc() != DocIdSetIterator.NO_MORE_DOCS) {
                         length += docsEnum.freq();

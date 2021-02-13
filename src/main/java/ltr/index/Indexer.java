@@ -12,18 +12,16 @@ import org.apache.lucene.util.Version;
 import org.xml.sax.SAXException;
 
 import ltr.parser.Parser;
-import ltr.index.Partitioner;
-import ltr.index.IndexInfo;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.apache.log4j.Logger;
 
+@SuppressWarnings("deprecation")
 /***
  * Classe responsável por, a partir dos objetos DOM, gerar um índice invertido em memória
  * e um índice conceitual. Recomendado para trabalhar com textos multirótulo.
@@ -133,9 +131,7 @@ public abstract class Indexer<T> {
                 generateIndex("TemporaryIndex", indexPath, doms, null);
 
             }
-            IndexReader tmp_ireader = IndexReader.open(
-                    new SimpleFSDirectory(new File(indexPath))
-            );
+            IndexReader tmp_ireader = IndexReader.open(new SimpleFSDirectory(new File(indexPath)));
 
             IndexInfo iInfo = new IndexInfo(tmp_ireader);
             return iInfo.getTopTermsTF("TEXT", 50);
