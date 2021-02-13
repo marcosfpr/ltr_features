@@ -16,6 +16,9 @@ import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.util.Version;
 
 @SuppressWarnings("deprecation")
+/**
+ * Analizador textual dos documentos Rottten
+ */
 public class RottenAnalyzer {
     static final Logger logger = Logger.getLogger(RottenAnalyzer.class.getName());
     private boolean stemming;

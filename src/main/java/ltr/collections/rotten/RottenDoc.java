@@ -3,10 +3,12 @@ package ltr.collections.rotten;
 import java.util.ArrayList;
 import java.util.List;
 
+import ltr.features.QueryDocument;
+
 /**
  * Um documento da rotten em memória
  */
-public class RottenDoc {
+public class RottenDoc implements QueryDocument{
 	private String movieId;
     private String movieTitle;
     private List<String> labels;
@@ -16,13 +18,13 @@ public class RottenDoc {
     
     public RottenDoc(String movieId, String movieTitle, String info, List<String> labels) {
     	this.setMovieId(movieId);
-    	this.setMovieTitle(movieTitle);
+    	this.setTitle(movieTitle);
     	this.setInfo(info);
     	this.setLabels(labels);
     	this.critics = new ArrayList<RottenCritic>();
     }
 
-    
+    @Override
     public String getText() {
     	return this.info + "\n" + this.critics;
     }
@@ -56,8 +58,8 @@ public class RottenDoc {
 		return result;
 	}
 
-
-	public String getMovieId() {
+	@Override
+	public String getId() {
 		return movieId;
 	}
 
@@ -66,13 +68,13 @@ public class RottenDoc {
 		this.movieId = movieId;
 	}
 
-
-	public String getMovieTitle() {
+	@Override
+	public String getTitle() {
 		return movieTitle;
 	}
 
 
-	public void setMovieTitle(String movieTitle) {
+	public void setTitle(String movieTitle) {
 		this.movieTitle = movieTitle;
 	}
 
@@ -83,7 +85,8 @@ public class RottenDoc {
 	public void setInfo(String info) {
 		this.info = info;
 	}
-
+	
+	@Override
 	public List<String> getLabels() {
 		return labels;
 	}
@@ -99,5 +102,6 @@ public class RottenDoc {
 	public String toString() {
 		return "RottenDoc [movieId=" + movieId + ", movieTitle=" + movieTitle + ", labels=" + labels + "]";
 	}
+
 	
 }

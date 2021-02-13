@@ -3,6 +3,9 @@ package ltr.collections.rotten;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Um documento conceitual - relativo ao gênero
+ */
 public class RottenConcept {
     private String id;
     private String title;

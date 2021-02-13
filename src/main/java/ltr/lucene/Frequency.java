@@ -52,7 +52,7 @@ public class Frequency {
         return result;
     }
 
-    private void fillQueue(TermsEnum termsEnum, TermStatsQueue tiq, String field) throws Exception {
+    public void fillQueue(TermsEnum termsEnum, TermStatsQueue tiq, String field) throws Exception {
         BytesRef term;
 
         while ((term = termsEnum.next()) != null) {
@@ -70,7 +70,7 @@ public class Frequency {
      * @param text
      * @return
      */
-    private Long totalTF(String field, BytesRef text) {
+    public Long totalTF(String field, BytesRef text) {
         Long tf = 0L;
         Term term = new Term(field, text);
         try {

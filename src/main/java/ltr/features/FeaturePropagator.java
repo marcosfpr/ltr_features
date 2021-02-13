@@ -10,10 +10,24 @@ import java.util.TreeMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import static ltr.settings.Config.configFile;
+
 /**
  * Classe responsável por aplicar o Score Propagation -> aplicar relações entre classes
  */
 public class FeaturePropagator {
+    public static void main(String[] args) {
+        FeaturePropagator fp = new FeaturePropagator(
+            configFile.getProperty("FEATURE_PATH"),
+            configFile.getProperty("FEATURE_PROPAGATED_PATH"),
+            configFile.getProperty("CONCEPT_GRAPH"),
+            Integer.parseInt(configFile.getProperty("NUM_ITERATIONS")),
+            Double.parseDouble(configFile.getProperty("LAMBDA")),
+            configFile.getProperty("BLACK_LIST")
+        );
+        fp.run();
+    }
+
     public static final Logger logger = Logger.getLogger(FeaturePropagator.class.getName());
     
     private HashSet<Integer> propagationBlackList;
