@@ -1,1 +1,12 @@
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/lucene/Frequency.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/parser/Parser.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/lucene/TermStats.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/index/Indexer.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/index/Partitioner.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/features/FeaturePropagator.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/features/FeatureNormalizer.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/fileutils/FileExtraction.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/index/IndexInfo.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/features/Feature.java
+/home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/settings/Config.java
 /home/marcos/Projetos/ltr_mltc/ic/src/main/java/ltr/App.java
