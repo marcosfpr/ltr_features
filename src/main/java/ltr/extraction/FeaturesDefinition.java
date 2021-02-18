@@ -1,12 +1,10 @@
 package ltr.extraction;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
@@ -31,8 +29,11 @@ public abstract class FeaturesDefinition {
 
     protected Map<String, Feature> docNum;
     protected Map<String, Feature> docIdfs;
+    protected Map<String, Feature> classFrequencies; // classID -> frequencia total no indice
+
+
     protected Map<Integer, String> indexToClass; // indice do lucene -> classID (id do genero)
-    protected Map<String, String> mapClassToId;
+    protected Map<String, String> mapClassToId; // class -> indice
     protected Map<String, Integer> docToIndex; // docID -> indice do lucene
 
 
@@ -89,6 +90,29 @@ public abstract class FeaturesDefinition {
         return this.docNum;
     }
 
+    /**
+     * Feature a nível de classe que indica a frequencia total dela na coleção de
+     * documentos
+     * 
+     * @return
+     * @throws IOException
+     */
+    public Map<String, Feature> classTotalFrequency() throws IOException {
+        if(this.classFrequencies == null){
+            this.docNum = new HashMap<>();
+			for (Map.Entry<String, String> entry : this.mapClassToId.entrySet()){
+                String[] keywords = entry.getKey().split("&");
+                double value = 0;
+                for(String keyword: keywords){
+                    Term term = new Term("TEXT", keyword.trim()); 
+                    value += this.documentReader.totalTermFreq(term);
+                }
+                this.classFrequencies.put(entry.getValue(), new Feature("classFreq", value, entry.getValue()));
+            }
+        }
+        return this.classFrequencies;
+    }
+
 
     /**
      * Para cada conceito de classe é gerada uma feature que retorna o IDF de cada conceito na coleção de documentos
@@ -104,22 +128,27 @@ public abstract class FeaturesDefinition {
 	     
 			for (Map.Entry<String, String> entry : this.mapClassToId.entrySet())
 			 {
-                Term term = new Term("TEXT", entry.getKey()); 
-                float idf = tfidfSIM.idf( this.documentReader.docFreq(term) ,this.documentReader.numDocs() );
-                this.docIdfs.put(entry.getValue(), new Feature("idfClass", (double)idf, entry.getValue()));      
+                float idf = 0;
+                String[] keywords = entry.getKey().split("&");
+                for( String t1 : keywords){
+                    Term term = new Term("TEXT", t1.trim()); 
+                    idf += tfidfSIM.idf( this.documentReader.docFreq(term) ,this.documentReader.numDocs());
+                }
+                this.docIdfs.put(entry.getValue(), new Feature("idfClass",
+                                 (double)idf/keywords.length, entry.getValue()));      
 			 }
     	}
 		
 		return this.docIdfs;
     }
     
+
     /**
      * TF de cada classe em um documento
      * @return
      * @throws IOException 
      */
     public Map<String, Feature> tfFeature(QueryDocument doc) throws IOException {
-    	
 		Map<String, Feature> docFrequencies = new HashMap<String, Feature>();
     	
 		TFIDFSimilarity tfidfSIM = new DefaultSimilarity();
@@ -127,15 +156,17 @@ public abstract class FeaturesDefinition {
 		 for (Map.Entry<String, String> entry : this.mapClassToId.entrySet())
 		 {
 			 String[] words = entry.getKey().split("&");
-			 
+
 			 Terms termVector = this.documentReader.getTermVector(this.docToIndex.get(doc.getId()), "TEXT");
 	         TermsEnum itr = termVector.iterator(null);
 	         BytesRef text = null;
 	         float freq = 0;
+
 	         while((text = itr.next()) != null) {
 	        	 String term = text.utf8ToString();
-	        	 if(ArrayUtils.contains(words, term)) {
-	        		 freq++;
+	        	 for(String word : words){
+                     if(word.trim().toLowerCase().contains(term.trim().toLowerCase()))
+	        		    freq++;
 	        	 }
 	         }
              float tf = tfidfSIM.tf( freq );
@@ -145,8 +176,8 @@ public abstract class FeaturesDefinition {
 		return docFrequencies;
     }
     
-        /**
-     * TF de cada classe em um documento
+    /**
+     * Valor booleano de cada classe em um documento
      * @return
      * @throws IOException 
      */
@@ -156,21 +187,27 @@ public abstract class FeaturesDefinition {
     	     
 		 for (Map.Entry<String, String> entry : this.mapClassToId.entrySet())
 		 {
-			 List<String> words = Arrays.asList(entry.getKey().split("&"));
+			 String[] words = entry.getKey().split("&");
 			 
+             boolean or_clause = false;
+
 			 Terms termVector = this.documentReader.getTermVector(this.docToIndex.get(doc.getId()), "TEXT");
 	         TermsEnum itr = termVector.iterator(null);
 	         BytesRef text = null;
-	         while((text = itr.next()) != null) {
-	        	 String term = text.utf8ToString();
-	        	 if(words.contains(term)) {
-	        		 for(int i=0; i < words.size(); i++) {
-	        			 if(words.get(i) == term) words.remove(i);
-	        		 }
-	        	 }
+	         
+             while((text = itr.next()) != null && or_clause != true) {
+                String term = text.utf8ToString();
+                
+                for(String word : words){
+                    if(word.contains(term)){
+                        or_clause = true;
+                        break;
+                    }
+                }
+	        	 
 	         }
 	         
-             int sim = words.isEmpty() ? 1 : 0;
+             int sim = or_clause ? 1 : 0;
              docBoolean.put(entry.getValue(), new Feature("classInDoc", (double)sim, entry.getValue()));     
 		 }
 	

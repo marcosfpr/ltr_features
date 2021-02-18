@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.store.SimpleFSDirectory;
 
 
@@ -29,6 +30,7 @@ import ltr.features.Feature;
 import ltr.features.QueryDocument;
 import ltr.fileutils.FileExtraction;
 import ltr.parser.Parser;
+
 
 /**
  * Calcula features
@@ -39,31 +41,19 @@ public abstract class FeaturesCalculator {
     private final String corpusPath;
     private final String conceptIndexPath;
     private final String indexPath;
+    private final String extension;
+    private final String suffix;
     private Map<String, String> mapClassToId;
 
     public static int queryID = 1;
     public static String featuresPath;
     public static ReentrantLock accessFile = new ReentrantLock();
 
-    public static final Integer[] featureNumbers = new Integer[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                                                                11, 12, 13, 14, 15, 16, 17, 18};
-
-    public static final String[][] FEATURES = new String[][]{
-        {"2000", "TEXT", "TEXT", "LMD"},
-        {"0.6", "TEXT", "TEXT", "LMJ"},
-        {"0.75", "TEXT", "TEXT", "BM25"},
-        {"0.0", "TEXT", "TEXT", "VM"},
-        {"2000", "TEXT", "TITLE", "LMD"},
-        {"0.6", "TEXT", "TITLE", "LMJ"},
-        {"0.75", "TEXT", "TITLE", "BM25"},
-        {"0.0", "TEXT", "TITLE", "VM"},
-        {"2000", "TITLE", "TEXT", "LMD"},
-        {"0.6", "TITLE", "TEXT", "LMJ"},
-        {"0.75", "TITLE", "TEXT", "BM25"},
-        {"2000", "TITLE", "TITLE", "LMD"},
-        {"0.6", "TITLE", "TITLE", "LMJ"},
-        {"0.75", "TITLE", "TITLE", "BM25"},
-        {"0.0", "TITLE", "TITLE", "VM"}
+    public static final FeaturesType[] usedFeatures = new FeaturesType[]{
+        FeaturesType.POPULARITY, FeaturesType.TF, FeaturesType.IDF, FeaturesType.BOOLEAN,
+        FeaturesType.SIM_TXT_TXT_LMD, FeaturesType.SIM_TXT_TXT_LMJ, FeaturesType.SIM_TXT_TXT_BM25, FeaturesType.SIM_TXT_TXT_VM,
+        FeaturesType.SIM_TXT_TIT_LMD, FeaturesType.SIM_TXT_TIT_LMJ, FeaturesType.SIM_TXT_TIT_BM25, FeaturesType.SIM_TXT_TIT_VM,
+        FeaturesType.SIM_TIT_TIT_LMD, FeaturesType.SIM_TIT_TIT_LMJ, FeaturesType.SIM_TIT_TIT_BM25, FeaturesType.SIM_TIT_TIT_VM,
     };
 
     /**
@@ -72,15 +62,18 @@ public abstract class FeaturesCalculator {
      * @param conceptIndexPath configFile.getProperty("CONCEPT")
      */
     public FeaturesCalculator(String featurePath, String corpusPath, String indexPath, 
-    		String conceptIndexPath, String classesPath) {
+    		String conceptIndexPath, String classesPath, String suffix, String extension) {
         this.resolvePaths(featurePath);
         this.loadClasses(classesPath);
         this.corpusPath = corpusPath;
         this.conceptIndexPath = conceptIndexPath;
         this.indexPath = indexPath;
+        this.suffix = suffix;
+        this.extension = extension;
     }
 
     public abstract FeaturesDefinition getFeaturesDefinition(IndexReader conceptReader, IndexReader documentReader);
+
     public abstract Parser<QueryDocument> getParser();
 
     public void run() throws Exception {
@@ -101,10 +94,11 @@ public abstract class FeaturesCalculator {
 
             ExecutorService executor = Executors.newFixedThreadPool(10);
 
-            List<QueryDocument> docs = parser.parse(FileExtraction.getAllFiles(new File(corpusPath), "", ".csv"));
+            List<QueryDocument> docs = parser.parse(FileExtraction.getAllFiles(new File(corpusPath), suffix, extension));
                         
             
             for(QueryDocument docAsQuery : docs) {
+                FeaturesCalculator.logger.info("Starting extract features of document : " + docAsQuery.getTitle());
                 executor.submit(new FeatureCalculatorCallable(docAsQuery, featuresDefinition, mapClassToId));
             }
 
@@ -164,7 +158,7 @@ public abstract class FeaturesCalculator {
 
 class FeatureCalculatorCallable implements Runnable {
 
-    private final Integer[] featureNumbers = FeaturesCalculator.featureNumbers;
+    private final FeaturesType[] features = FeaturesCalculator.usedFeatures;
     private final QueryDocument docAsQuery;
     private final FeaturesDefinition featuresDefinition;
     private Map<String, String> mapClassToId;
@@ -183,11 +177,13 @@ class FeatureCalculatorCallable implements Runnable {
     public void run() {
         
         Map<Integer, Map<String, Feature>> allFeaturesOneDoc = new TreeMap<>();
-        for (int fnum : featureNumbers) {
+        for(int i = 0; i < features.length; i++){
+            int fnum = i+1;
+            FeaturesType ftype = features[i];
             try {
-				allFeaturesOneDoc.put(fnum, calculateFeatures(docAsQuery, fnum, featuresDefinition));
-			} catch (Exception e) {
-				FeaturesCalculator.logger.error("Erro na extração da Feature " + fnum + "!");
+				allFeaturesOneDoc.put(fnum, calculateFeatures(docAsQuery, ftype, featuresDefinition));
+			} catch (ParseException | IOException e) {
+				FeaturesCalculator.logger.error("Erro na extração da Feature " + fnum + ": " + e.getMessage());
 			}
         }
 
@@ -200,34 +196,40 @@ class FeatureCalculatorCallable implements Runnable {
     }
 
 
-    public Map<String, Feature> calculateFeatures(QueryDocument docAsQuery, int fnum, FeaturesDefinition fdef) throws Exception {
+    public Map<String, Feature> calculateFeatures(QueryDocument docAsQuery, FeaturesType ftype, FeaturesDefinition fdef) throws ParseException,
+            IOException {
         Map<String, Feature> allFeatures = new HashMap<>();
 
         Map<String, Feature> f;
         List<Float> params;
 
-        switch (fnum) {
-            case 1: // popularidade
+        switch (ftype) {
+            case POPULARITY: // popularidade da classe
                 f = fdef.documentNumberFeatureBased();
                 allFeatures.putAll(f);
                 break;
-            case 2:
+            // case 20: // frequencia total da classe na colecao
+            // 	f = fdef.classTotalFrequency();
+            // 	allFeatures.putAll(f);
+            // 	break;
+            case IDF: // idf da classe
             	f = fdef.idfFeature();
             	allFeatures.putAll(f);
             	break;
-            case 3:
+            case TF: // tf da classe no documento
             	f = fdef.tfFeature(docAsQuery);
             	allFeatures.putAll(f);
             	break;
-            case 4: 
+            case BOOLEAN: // consula booleana com AND
             	f = fdef.booleanFeature(docAsQuery);
             	allFeatures.putAll(f);
             	break;
             default:
-                params = Collections.singletonList(Float.valueOf(FeaturesCalculator.FEATURES[fnum - 1][0]));
-                String queryField = FeaturesCalculator.FEATURES[fnum-1][1];
-                String docField = FeaturesCalculator.FEATURES[fnum-1][2];
-                String simFunc = FeaturesCalculator.FEATURES[fnum-1][3];
+                String[] args = ftype.getParams();
+                params = Collections.singletonList(Float.valueOf(args[0]));
+                String queryField = args[1];
+                String docField = args[2];
+                String simFunc = args[3];
                 f = fdef.documentFeatureBased(docAsQuery, queryField, docField, simFunc, params);
                 allFeatures.putAll(f);
                 break;
@@ -270,7 +272,8 @@ class FeatureCalculatorCallable implements Runnable {
                 String queryName = docAsQuery.getId();
                 StringBuilder tmpLine = new StringBuilder();
 
-                for (int fnum : this.featureNumbers) {
+                for(int i = 0; i < features.length; i++){
+                    int fnum = i+1;
                     if (!ent.getValue().containsKey(fnum)) {
                         ent.getValue().put(fnum, new Feature(queryName, 0D, queryName, cID, lbl));
                     }

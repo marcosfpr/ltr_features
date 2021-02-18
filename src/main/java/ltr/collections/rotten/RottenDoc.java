@@ -27,6 +27,7 @@ public class RottenDoc implements QueryDocument{
     @Override
     public String getText() {
     	return this.info + "\n" + this.critics;
+		// return this.info;
     }
     
     public void addCritic(RottenCritic critic) {
