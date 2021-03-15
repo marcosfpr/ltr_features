@@ -15,9 +15,11 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import ltr.collections.jrc.parser.EuroVocParser;
 import ltr.collections.rotten.parser.RottenParser;
 import ltr.features.QueryDocument;
 import ltr.index.Partitioner;
+import ltr.parser.Parser;
 
 import static ltr.settings.Config.configFile;
 
@@ -25,9 +27,11 @@ import static ltr.settings.Config.configFile;
 public class ConceptGraph {
     public static void main(String[] args) throws Exception {
         ConceptGraph graph = new ConceptGraph(
-                configFile.getProperty("CORPUS"),
-                configFile.getProperty("CONCEPT_GRAPH"),
-                Integer.parseInt(configFile.getProperty("CHUNK_SIZE"))
+                configFile.getProperty("CORPUS_JRC"),
+                configFile.getProperty("CONCEPT_GRAPH_JRC"),
+                new EuroVocParser(), // RottenParser()
+                Integer.parseInt(configFile.getProperty("CHUNK_SIZE")),
+                "jrc", ".xml"
         );
         graph.makeGraph();
     }
@@ -36,25 +40,28 @@ public class ConceptGraph {
     private Map<String, Double> edgeList = new HashMap<>(); // classe => numero de ocorrencias
     private final String corpusPath;
     private final String conceptGraph;
-
+    private final String prefix;
+    private final String extension;
     private final Integer chunkSize;
+    private Parser<QueryDocument> parser;
 
-    public ConceptGraph(String corpusPath, String conceptGraph, Integer chunkSize) throws IOException {
+    public ConceptGraph(String corpusPath, String conceptGraph, Parser<QueryDocument> parser, Integer chunkSize, String prefix, String extension) throws IOException {
         this.corpusPath = corpusPath;
         this.chunkSize = chunkSize;
         this.conceptGraph = conceptGraph;
+        this.prefix = prefix;
+        this.extension = extension;
+        this.parser = parser;
 
         FileUtils.touch(new File(conceptGraph));
     }
 
     public void makeGraph() throws Exception {
-        RottenParser parser = new RottenParser();
-
-        Partitioner partitioner = new Partitioner(corpusPath, "", chunkSize, ".csv");
+        Partitioner partitioner = new Partitioner(corpusPath, prefix, chunkSize, extension);
 
         for (List<File> block : partitioner) {
 
-            List<QueryDocument> doms = parser.parse(block);
+            List<QueryDocument> doms = this.parser.parse(block);
             conceptDoc(doms);
             this.writeToFile();
         }

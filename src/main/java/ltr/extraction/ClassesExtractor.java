@@ -9,6 +9,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
+import ltr.collections.jrc.parser.EuroVocParser;
 import ltr.collections.rotten.parser.RottenParser;
 import ltr.features.QueryDocument;
 import ltr.fileutils.FileExtraction;
@@ -24,9 +25,9 @@ public class ClassesExtractor {
 
     public static void main(String[] args) throws Exception {
         ClassesExtractor.run(
-            configFile.getProperty("CORPUS"),
-            configFile.getProperty("CLASSES_PATH"),
-            new RottenParser(), "", ".csv" // basta mudar esta linha para JRC
+            configFile.getProperty("CORPUS_JRC"),
+            configFile.getProperty("CLASSES_PATH_JRC"),
+            new EuroVocParser(), "jrc", ".xml" // basta mudar esta linha para JRC
         );
     }
 

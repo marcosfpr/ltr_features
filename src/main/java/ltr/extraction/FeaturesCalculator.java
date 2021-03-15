@@ -50,7 +50,7 @@ public abstract class FeaturesCalculator {
     public static ReentrantLock accessFile = new ReentrantLock();
 
     public static final FeaturesType[] usedFeatures = new FeaturesType[]{
-        FeaturesType.POPULARITY, FeaturesType.TF, FeaturesType.IDF, FeaturesType.BOOLEAN,
+        FeaturesType.POPULARITY, FeaturesType.TF, FeaturesType.IDF, FeaturesType.BOOLEAN, FeaturesType.CLASS_FREQUENCY,
         FeaturesType.SIM_TXT_TXT_LMD, FeaturesType.SIM_TXT_TXT_LMJ, FeaturesType.SIM_TXT_TXT_BM25, FeaturesType.SIM_TXT_TXT_VM,
         FeaturesType.SIM_TXT_TIT_LMD, FeaturesType.SIM_TXT_TIT_LMJ, FeaturesType.SIM_TXT_TIT_BM25, FeaturesType.SIM_TXT_TIT_VM,
         FeaturesType.SIM_TIT_TIT_LMD, FeaturesType.SIM_TIT_TIT_LMJ, FeaturesType.SIM_TIT_TIT_BM25, FeaturesType.SIM_TIT_TIT_VM,
@@ -92,13 +92,13 @@ public abstract class FeaturesCalculator {
 
             Parser<QueryDocument> parser = getParser();
 
-            ExecutorService executor = Executors.newFixedThreadPool(10);
+            ExecutorService executor = Executors.newFixedThreadPool(8);
 
             List<QueryDocument> docs = parser.parse(FileExtraction.getAllFiles(new File(corpusPath), suffix, extension));
                         
             
             for(QueryDocument docAsQuery : docs) {
-                FeaturesCalculator.logger.info("Starting extract features of document : " + docAsQuery.getTitle());
+                FeaturesCalculator.logger.info("Começando a extrair features do documento : " + docAsQuery.getTitle());
                 executor.submit(new FeatureCalculatorCallable(docAsQuery, featuresDefinition, mapClassToId));
             }
 
@@ -208,10 +208,10 @@ class FeatureCalculatorCallable implements Runnable {
                 f = fdef.documentNumberFeatureBased();
                 allFeatures.putAll(f);
                 break;
-            // case 20: // frequencia total da classe na colecao
-            // 	f = fdef.classTotalFrequency();
-            // 	allFeatures.putAll(f);
-            // 	break;
+            case CLASS_FREQUENCY: // frequencia total da classe na colecao
+            	f = fdef.countFeature(docAsQuery);
+            	allFeatures.putAll(f);
+            	break;
             case IDF: // idf da classe
             	f = fdef.idfFeature();
             	allFeatures.putAll(f);

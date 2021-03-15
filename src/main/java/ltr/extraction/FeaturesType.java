@@ -4,7 +4,7 @@ package ltr.extraction;
  * Features envolvidas
  */
 public enum FeaturesType {
-    POPULARITY(null), TF(null), IDF(null), BOOLEAN(null),
+    POPULARITY(null), TF(null), IDF(null), BOOLEAN(null), CLASS_FREQUENCY(null),
     SIM_TXT_TXT_LMD(new String[]{"2000", "TEXT", "TEXT", "LMD"}),
     SIM_TXT_TXT_LMJ(new String[]{"0.6", "TEXT", "TEXT", "LMJ"}),
     SIM_TXT_TXT_BM25(new String[]{"0.75", "TEXT", "TEXT", "BM25"}),

@@ -99,7 +99,7 @@ public abstract class FeaturesDefinition {
      */
     public Map<String, Feature> classTotalFrequency() throws IOException {
         if(this.classFrequencies == null){
-            this.docNum = new HashMap<>();
+            this.classFrequencies = new HashMap<>();
 			for (Map.Entry<String, String> entry : this.mapClassToId.entrySet()){
                 String[] keywords = entry.getKey().split("&");
                 double value = 0;
@@ -177,7 +177,44 @@ public abstract class FeaturesDefinition {
     }
     
     /**
-     * Valor booleano de cada classe em um documento
+     * Valor booleano ponderado de cada classe em um documento
+     * @return
+     * @throws IOException 
+     */
+    public HashMap<String, Feature> countFeature(QueryDocument doc) throws IOException {
+    	
+		HashMap<String, Feature> docBoolean = new HashMap<String, Feature>();
+    	     
+		 for (Map.Entry<String, String> entry : this.mapClassToId.entrySet())
+		 {
+			 String[] words = entry.getKey().split("&");
+			 
+             int times = 0;
+
+			 Terms termVector = this.documentReader.getTermVector(this.docToIndex.get(doc.getId()), "TEXT");
+	         TermsEnum itr = termVector.iterator(null);
+	         BytesRef text = null;
+	         
+             while((text = itr.next()) != null) {
+                String term = text.utf8ToString();
+                
+                for(String word : words){
+                    if(word.contains(term)){
+                        times++;
+                    }
+                }
+	        	 
+	         }
+	         
+             docBoolean.put(entry.getValue(), new Feature("classInDoc", (double)times, entry.getValue()));     
+		 }
+	
+		return docBoolean;
+    }
+
+
+        /**
+     * Valor booleano ponderado de cada classe em um documento
      * @return
      * @throws IOException 
      */
@@ -206,9 +243,10 @@ public abstract class FeaturesDefinition {
                 }
 	        	 
 	         }
+
+             double sim = or_clause ? 1.0 : 0.0;
 	         
-             int sim = or_clause ? 1 : 0;
-             docBoolean.put(entry.getValue(), new Feature("classInDoc", (double)sim, entry.getValue()));     
+             docBoolean.put(entry.getValue(), new Feature("booleanDoc", (double)sim, entry.getValue()));     
 		 }
 	
 		return docBoolean;

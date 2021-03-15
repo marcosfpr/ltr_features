@@ -87,7 +87,7 @@ public class FeaturePropagator {
             String[] featuresLine = rawLine[0].split("\\s+");
             String[] metaLine = rawLine[1].split("\\s+");
 
-            for (int i = 2; i < featuresLine.length - 4 ; i++) {
+            for (int i = 2; i < featuresLine.length; i++) {
                 Integer fNum = Integer.parseInt(featuresLine[i].split(":")[0]);
                 Double fVal = Double.parseDouble(featuresLine[i].split(":")[1]);
 
