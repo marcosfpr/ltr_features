@@ -10,6 +10,7 @@ import java.util.TreeSet;
 import org.apache.log4j.Logger;
 
 import ltr.collections.jrc.parser.EuroVocParser;
+import ltr.collections.reuters.parser.ReutersParser;
 import ltr.collections.rotten.parser.RottenParser;
 import ltr.features.QueryDocument;
 import ltr.fileutils.FileExtraction;
@@ -25,9 +26,9 @@ public class ClassesExtractor {
 
     public static void main(String[] args) throws Exception {
         ClassesExtractor.run(
-            configFile.getProperty("CORPUS_JRC"),
-            configFile.getProperty("CLASSES_PATH_JRC"),
-            new EuroVocParser(), "jrc", ".xml" // basta mudar esta linha para JRC
+            configFile.getProperty("CORPUS_REUTERS"),
+            configFile.getProperty("CLASSES_PATH_REUTERS"), // _JRC
+            new ReutersParser(), "", "" // basta mudar esta linha para JRC
         );
     }
 
@@ -35,7 +36,7 @@ public class ClassesExtractor {
                              Parser<QueryDocument> parser, String prefix, String suffix) throws Exception {
 
         List<QueryDocument> docs = parser.parse(FileExtraction.getAllFiles(new File(concept_eval_path), prefix, suffix));
-
+        
         Set<String> trainClasses = new TreeSet<>();
 
         for(QueryDocument doc: docs) {
@@ -47,12 +48,13 @@ public class ClassesExtractor {
         for(String usedClass : trainClasses) {
             if(usedClass.length() > 1) {
                 i++;	
-            	bw.write(usedClass.trim() + " - " + i + "\n");
+            	bw.write(usedClass.trim() + " => " + i + "\n");
+                System.out.println(usedClass.trim() + " => " + i);
             }
         }
 
         bw.close();
-
+        logger.info(docs.size() + " documentos serão utilizados.");
         logger.info(i + " classes serão utilizadas.");
     }
 }

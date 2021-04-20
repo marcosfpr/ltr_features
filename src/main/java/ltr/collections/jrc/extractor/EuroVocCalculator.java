@@ -21,7 +21,7 @@ public class EuroVocCalculator extends FeaturesCalculator{
 
     public static void main(String[] args) throws Exception {
         FeaturesCalculator fc = new EuroVocCalculator(
-            configFile.getProperty("FEATURE_PATH"),
+            configFile.getProperty("FEATURE_PATH_JRC"),
             configFile.getProperty("CORPUS_JRC"),
             configFile.getProperty("INDEX_JRC"),
             configFile.getProperty("CONCEPT_JRC"),

@@ -1,4 +1,4 @@
-package ltr.collections.rotten.indexer;
+package ltr.collections.reuters.indexer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,8 +26,8 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.Version;
 
-import ltr.collections.rotten.RottenConcept;
-import ltr.collections.rotten.parser.RottenParser;
+import ltr.collections.reuters.ReutersConcept;
+import ltr.collections.reuters.parser.ReutersParser;
 import ltr.features.QueryDocument;
 import ltr.index.Indexer;
 import ltr.parser.Parser;
@@ -38,29 +38,29 @@ import static ltr.settings.Config.configFile;
 /**
  * Indexador da Rotten
  */
-public class RottenIndexer extends Indexer<QueryDocument> {
+public class ReutersIndexer extends Indexer<QueryDocument> {
 
     public static void main(String[] args) throws Exception {
-        Indexer<QueryDocument> indexer = new RottenIndexer(
-           configFile.getProperty("CORPUS"),
-           configFile.getProperty("INDEX"),
-           configFile.getProperty("CONCEPT"),
-           configFile.getProperty("CLASSES_PATH"),
-           new RottenParser(),
+        Indexer<QueryDocument> indexer = new ReutersIndexer(
+           configFile.getProperty("CORPUS_REUTERS"),
+           configFile.getProperty("INDEX_REUTERS"),
+           configFile.getProperty("CONCEPT_REUTERS"),
+           configFile.getProperty("CLASSES_PATH_REUTERS"),
+           new ReutersParser(),
            Boolean.parseBoolean(configFile.getProperty("STEMMING")),
            Boolean.parseBoolean(configFile.getProperty("STOP_WORDS")),
            Integer.parseInt(configFile.getProperty("CHUNK_SIZE"))
        );
-       indexer.setExtension(".csv");
+       indexer.setExtension("");
        indexer.run();
     }
     
-    static final Logger logger = Logger.getLogger(RottenIndexer.class.getName());
+    static final Logger logger = Logger.getLogger(ReutersIndexer.class.getName());
     protected Analyzer analyzer;
     private Map<String, Analyzer> filterAnalyzers =  null; // filtrar campos que nao quero que sejam analisados profundamente
     private Map<String, String> mapClassToId;
 
-    public RottenIndexer(String corpusPath, String indexPath, String conceptPath, String classesPath, Parser<QueryDocument> parser,
+    public ReutersIndexer(String corpusPath, String indexPath, String conceptPath, String classesPath, Parser<QueryDocument> parser,
                         Boolean stemming, Boolean stopWs, int chunkSize) {
         super(corpusPath, indexPath, conceptPath, parser, stemming, stopWs, chunkSize);
         this.filterAnalyzers = new HashMap<>();
@@ -72,7 +72,7 @@ public class RottenIndexer extends Indexer<QueryDocument> {
     public void generateIndex(String indexName, String indexPath, List<QueryDocument> doms, List<String> commonWs) {
         logger.info("Criando indice " + indexName);
 
-        this.analyzer = new RottenAnalyzer(stemming, commonWs).getAnalyzer("EN");
+        this.analyzer = new ReutersAnalyzer(stemming, commonWs).getAnalyzer("EN");
 
         try {
             IndexWriterConfig config = setupIndex(this.analyzer, this.filterAnalyzers);
@@ -114,10 +114,10 @@ public class RottenIndexer extends Indexer<QueryDocument> {
             BytesRef clazz;
             while ((clazz = classesEnum.next()) != null) {
                 DocsEnum docsEnum = classesEnum.docs(null, null);
-                RottenConcept evc = extractConcept(clazz, docsEnum, originalReader);
+                ReutersConcept evc = extractConcept(clazz, docsEnum, originalReader);
                 Document doc = toConcept(evc);
                 this.indexWriter.addDocument(doc);
-                logger.info("Documento " + evc + " foi indexado com sucesso.");
+                logger.info("Conceito " + evc + " foi indexado com sucesso.");
             }
 
 
@@ -159,7 +159,6 @@ public class RottenIndexer extends Indexer<QueryDocument> {
     public Document toDoc(QueryDocument dom) {
         Document doc = new Document();
         doc.add(new Field("ID", dom.getId(), Field.Store.YES, Field.Index.NO));
-        doc.add(new Field("TITLE", dom.getTitle(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS));
         doc.add(new Field("TEXT", dom.getText(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS));
 
         StringBuilder classes = new StringBuilder();
@@ -178,21 +177,20 @@ public class RottenIndexer extends Indexer<QueryDocument> {
         return doc;
     }
     
-    private RottenConcept extractConcept(BytesRef cID, DocsEnum docsEnum, IndexReader originalReader) {
-    	RottenConcept evc = null;
+    private ReutersConcept extractConcept(BytesRef cID, DocsEnum docsEnum, IndexReader originalReader) {
+    	ReutersConcept evc = null;
         try {
             List<String> docs = new ArrayList<>();
             StringBuilder textSB = new StringBuilder();
-            StringBuilder titleSB = new StringBuilder();
             int docIdEnum;
 
             while ((docIdEnum = docsEnum.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS) {
                 Document doc = originalReader.document(docIdEnum); // obtem o documento em memoria
                 docs.add(doc.get("ID"));
                 textSB.append(doc.get("TEXT")).append("\n");
-                titleSB.append(doc.get("TITLE")).append("\n");
             }
-            evc = new RottenConcept(cID.utf8ToString(), textSB.toString().trim(), titleSB.toString().trim(), docs);
+
+            evc = new ReutersConcept(cID.utf8ToString(), textSB.toString().trim(), docs);
         }
         catch (IOException e) {
             logger.error(e.getMessage());
@@ -200,11 +198,10 @@ public class RottenIndexer extends Indexer<QueryDocument> {
         return evc;
     }
 
-    private Document toConcept(RottenConcept evc) {
+    private Document toConcept(ReutersConcept evc) {
         Document doc = new Document();
 
         doc.add(new Field("ID", evc.getId(), Field.Store.YES, Field.Index.NO));
-        doc.add(new Field("TITLE", evc.getTitle(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS));
         doc.add(new Field("TEXT", evc.getText(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS));
         
         StringBuilder docs = new StringBuilder();

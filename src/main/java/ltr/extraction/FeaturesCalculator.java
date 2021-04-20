@@ -50,10 +50,11 @@ public abstract class FeaturesCalculator {
     public static ReentrantLock accessFile = new ReentrantLock();
 
     public static final FeaturesType[] usedFeatures = new FeaturesType[]{
-        FeaturesType.POPULARITY, FeaturesType.TF, FeaturesType.IDF, FeaturesType.BOOLEAN, FeaturesType.CLASS_FREQUENCY,
-        FeaturesType.SIM_TXT_TXT_LMD, FeaturesType.SIM_TXT_TXT_LMJ, FeaturesType.SIM_TXT_TXT_BM25, FeaturesType.SIM_TXT_TXT_VM,
-        FeaturesType.SIM_TXT_TIT_LMD, FeaturesType.SIM_TXT_TIT_LMJ, FeaturesType.SIM_TXT_TIT_BM25, FeaturesType.SIM_TXT_TIT_VM,
-        FeaturesType.SIM_TIT_TIT_LMD, FeaturesType.SIM_TIT_TIT_LMJ, FeaturesType.SIM_TIT_TIT_BM25, FeaturesType.SIM_TIT_TIT_VM,
+        FeaturesType.POPULARITY,// FeaturesType.TF, FeaturesType.IDF, FeaturesType.BOOLEAN, FeaturesType.CLASS_FREQUENCY,
+        FeaturesType.SIM_TXT_TXT_LMD, FeaturesType.SIM_TXT_TXT_LMJ, FeaturesType.SIM_TXT_TXT_BM25, //FeaturesType.SIM_TXT_TXT_VM,
+        FeaturesType.SIM_TXT_TIT_LMD, FeaturesType.SIM_TXT_TIT_LMJ, FeaturesType.SIM_TXT_TIT_BM25,// FeaturesType.SIM_TXT_TIT_VM,
+        FeaturesType.SIM_TIT_TXT_LMD, FeaturesType.SIM_TIT_TXT_LMJ, FeaturesType.SIM_TIT_TXT_BM25, //FeaturesType.SIM_TIT_TXT_VM,
+        FeaturesType.SIM_TIT_TIT_LMD, FeaturesType.SIM_TIT_TIT_LMJ, FeaturesType.SIM_TIT_TIT_BM25, //FeaturesType.SIM_TIT_TIT_VM,
     };
 
     /**
@@ -143,7 +144,7 @@ public abstract class FeaturesCalculator {
 			BufferedReader br = new BufferedReader(new FileReader(classesPath));
 			String line;
 			while ((line = br.readLine()) != null) {
-			    String[] pair = line.split("-");
+			    String[] pair = line.split("=>");
 			    this.mapClassToId.put(pair[0].trim().toLowerCase(), pair[1].trim());
 			}
 			br.close();
