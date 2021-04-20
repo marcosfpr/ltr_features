@@ -5,4 +5,4 @@
 - Rotten Tommatoes
 
 
-- Acknowledge: Hosein Azarbonyad.
+Acknowledge: Hosein Azarbonyad.
