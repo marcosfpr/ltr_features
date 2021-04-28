@@ -37,6 +37,7 @@ import ltr.parser.Parser;
  */
 @SuppressWarnings("deprecation")
 public abstract class FeaturesCalculator {
+    
     public static final Logger logger = Logger.getLogger(FeaturesCalculator.class.getName());
     private final String corpusPath;
     private final String conceptIndexPath;
@@ -52,9 +53,14 @@ public abstract class FeaturesCalculator {
     public static final FeaturesType[] usedFeatures = new FeaturesType[]{
         FeaturesType.POPULARITY,// FeaturesType.TF, FeaturesType.IDF, FeaturesType.BOOLEAN, FeaturesType.CLASS_FREQUENCY,
         FeaturesType.SIM_TXT_TXT_LMD, FeaturesType.SIM_TXT_TXT_LMJ, FeaturesType.SIM_TXT_TXT_BM25, //FeaturesType.SIM_TXT_TXT_VM,
-        FeaturesType.SIM_TXT_TIT_LMD, FeaturesType.SIM_TXT_TIT_LMJ, FeaturesType.SIM_TXT_TIT_BM25,// FeaturesType.SIM_TXT_TIT_VM,
+        FeaturesType.SIM_TXT_TIT_LMD, FeaturesType.SIM_TXT_TIT_LMJ, FeaturesType.SIM_TXT_TIT_BM25, //FeaturesType.SIM_TXT_TIT_VM,
         FeaturesType.SIM_TIT_TXT_LMD, FeaturesType.SIM_TIT_TXT_LMJ, FeaturesType.SIM_TIT_TXT_BM25, //FeaturesType.SIM_TIT_TXT_VM,
         FeaturesType.SIM_TIT_TIT_LMD, FeaturesType.SIM_TIT_TIT_LMJ, FeaturesType.SIM_TIT_TIT_BM25, //FeaturesType.SIM_TIT_TIT_VM,
+        FeaturesType.SIM_TXT_DESC_LMD, FeaturesType.SIM_TXT_DESC_LMJ, FeaturesType.SIM_TXT_DESC_BM25, //FeaturesType.SIM_TXT_DESC_VM,
+        FeaturesType.SIM_TXT_UNDESC_LMD, FeaturesType.SIM_TXT_UNDESC_LMJ, FeaturesType.SIM_TXT_UNDESC_BM25, //FeaturesType.SIM_TXT_UNDESC_VM,
+        FeaturesType.SIM_TIT_DESC_LMD, FeaturesType.SIM_TIT_DESC_LMJ, FeaturesType.SIM_TIT_DESC_BM25, //FeaturesType.SIM_TIT_DESC_VM,
+        FeaturesType.SIM_TIT_UNDESC_LMD, FeaturesType.SIM_TIT_UNDESC_LMJ, FeaturesType.SIM_TIT_UNDESC_BM25,// FeaturesType.SIM_TIT_UNDESC_VM
+        FeaturesType.PARENTS, FeaturesType.CHILDREN
     };
 
     /**
@@ -65,7 +71,7 @@ public abstract class FeaturesCalculator {
     public FeaturesCalculator(String featurePath, String corpusPath, String indexPath, 
     		String conceptIndexPath, String classesPath, String suffix, String extension) {
         this.resolvePaths(featurePath);
-        this.loadClasses(classesPath);
+        loadClasses(classesPath);
         this.corpusPath = corpusPath;
         this.conceptIndexPath = conceptIndexPath;
         this.indexPath = indexPath;
@@ -209,6 +215,14 @@ class FeatureCalculatorCallable implements Runnable {
                 f = fdef.documentNumberFeatureBased();
                 allFeatures.putAll(f);
                 break;
+            case PARENTS: // numero de pais da classe
+                f = fdef.documentParentFeatureBased();
+                allFeatures.putAll(f);
+                break;
+            case CHILDREN: // numero de filhos da classe
+                f = fdef.documentChildrenFeatureBased();
+                allFeatures.putAll(f);
+                break;
             case CLASS_FREQUENCY: // frequencia total da classe na colecao
             	f = fdef.countFeature(docAsQuery);
             	allFeatures.putAll(f);
@@ -235,6 +249,7 @@ class FeatureCalculatorCallable implements Runnable {
                 allFeatures.putAll(f);
                 break;
         }
+
         return allFeatures;
     }
 
@@ -259,14 +274,14 @@ class FeatureCalculatorCallable implements Runnable {
    
             StringBuilder lines = new StringBuilder();
 
+            ArrayList<String> classesIds = new ArrayList<>();
+            for(String lb : docAsQuery.getLabels()) {
+                classesIds.add(this.mapClassToId.get(lb));
+            }
+
             int nlin = 0;
             for (Map.Entry<String, TreeMap<Integer, Feature>> ent : docs.entrySet()) {
-            	
-            	ArrayList<String> classesIds = new ArrayList<>();
-            	for(String lb : docAsQuery.getLabels()) {
-            		classesIds.add(this.mapClassToId.get(lb));
-            	}
-
+        
                 String lbl = (classesIds.contains(ent.getKey())) ? "1" : "0";
                 
                 String cID = ent.getKey();

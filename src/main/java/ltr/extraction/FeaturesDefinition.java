@@ -16,6 +16,7 @@ import org.apache.lucene.util.BytesRef;
 
 import ltr.features.Feature;
 import ltr.features.QueryDocument;
+import ltr.index.IndexInfo;
 import ltr.retrieval.Retrieval;
 
 /**
@@ -30,7 +31,8 @@ public abstract class FeaturesDefinition {
     protected Map<String, Feature> docNum;
     protected Map<String, Feature> docIdfs;
     protected Map<String, Feature> classFrequencies; // classID -> frequencia total no indice
-
+    protected Map<String,Feature> parentsNum;
+    protected Map<String,Feature> childrenNum;
 
     protected Map<Integer, String> indexToClass; // indice do lucene -> classID (id do genero)
     protected Map<String, String> mapClassToId; // class -> indice
@@ -250,6 +252,60 @@ public abstract class FeaturesDefinition {
 		 }
 	
 		return docBoolean;
+    }
+
+
+        /**
+     * Para cada conceito de classe é gerada uma feature que retorna o número de "pais" da classe
+     * @param doc
+     * @return
+     */
+    public Map<String, Feature> documentParentFeatureBased() {
+        Map<String, Feature> features = new HashMap<>();
+
+        if(this.parentsNum == null){
+            parentsNum = new HashMap<>();
+            IndexInfo indexInfo = new IndexInfo(this.conceptReader);
+
+            for (int i = 0; i < this.conceptReader.numDocs(); i++) {
+                Feature f = new Feature("pNum", indexInfo.getDocumentLength(i, "PARENTS").doubleValue(),
+                        this.indexToClass.get(i));
+                parentsNum.put(this.indexToClass.get(i), f);
+            }
+
+        }
+        else{
+            features = this.parentsNum;
+        }
+
+        return features;
+    }
+
+    /**
+     * Para cada conceito de classe é gerada uma feature que retorna o número de "filhos" da classe
+     * @param doc
+     * @return
+     */
+    public Map<String, Feature> documentChildrenFeatureBased() {
+
+        Map<String, Feature> features = new HashMap<>();
+
+        if(childrenNum == null){
+            childrenNum = new HashMap<>();
+            IndexInfo indexInfo = new IndexInfo(this.conceptReader);
+
+            for (int i = 0; i < this.conceptReader.numDocs(); i++) {
+                Feature f = new Feature("cNum", indexInfo.getDocumentLength(i, "CHILDREN").doubleValue(),
+                        this.indexToClass.get(i));
+                childrenNum.put(this.indexToClass.get(i), f);
+            }
+
+        }
+        else{
+            features = childrenNum;
+        }
+
+        return features;
     }
 
     public IndexReader getDocumentReader() {

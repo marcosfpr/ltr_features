@@ -26,9 +26,9 @@ public class ClassesExtractor {
 
     public static void main(String[] args) throws Exception {
         ClassesExtractor.run(
-            configFile.getProperty("CORPUS_REUTERS"),
-            configFile.getProperty("CLASSES_PATH_REUTERS"), // _JRC
-            new ReutersParser(), "", "" // basta mudar esta linha para JRC
+            configFile.getProperty("TRAIN_JRC"),
+            configFile.getProperty("CLASSES_PATH_JRC"), // _JRC
+            new EuroVocParser(), "jrc", ".xml" // basta mudar esta linha para JRC
         );
     }
 

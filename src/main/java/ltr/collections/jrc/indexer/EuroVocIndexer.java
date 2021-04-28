@@ -40,7 +40,7 @@ public class EuroVocIndexer extends Indexer<QueryDocument> {
 
     public static void main(String[] args) throws Exception {
         Indexer<QueryDocument> indexer = new EuroVocIndexer(
-           configFile.getProperty("CORPUS_JRC"),
+           configFile.getProperty("TRAIN_JRC"),
            configFile.getProperty("INDEX_JRC"),
            configFile.getProperty("CONCEPT_JRC"),
            new EuroVocParser(),
