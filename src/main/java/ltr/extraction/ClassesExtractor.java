@@ -27,25 +27,35 @@ public class ClassesExtractor {
     public static void main(String[] args) throws Exception {
         ClassesExtractor.run(
             configFile.getProperty("TRAIN_JRC"),
+            configFile.getProperty("TEST_JRC"),
             configFile.getProperty("CLASSES_PATH_JRC"), // _JRC
             new EuroVocParser(), "jrc", ".xml" // basta mudar esta linha para JRC
         );
     }
 
-    private static void run(String concept_eval_path, String classes_path,
+    private static void run(String trainDocs, String testDocs, String classes_path,
                              Parser<QueryDocument> parser, String prefix, String suffix) throws Exception {
 
-        List<QueryDocument> docs = parser.parse(FileExtraction.getAllFiles(new File(concept_eval_path), prefix, suffix));
+        List<QueryDocument> docs = parser.parse(FileExtraction.getAllFiles(new File(trainDocs), prefix, suffix));
+        List<QueryDocument> docsTest = parser.parse(FileExtraction.getAllFiles(new File(testDocs), prefix, suffix));
         
         Set<String> trainClasses = new TreeSet<>();
+        Set<String> testClasses = new TreeSet<>();
 
         for(QueryDocument doc: docs) {
             trainClasses.addAll(doc.getLabels());
         }
 
+        for(QueryDocument doc: docsTest) {
+            testClasses.addAll(doc.getLabels());
+        }
+
+        Set<String> availableClasses = new TreeSet<>(trainClasses);
+        availableClasses.retainAll(testClasses);
+
         BufferedWriter bw = new BufferedWriter(new FileWriter(classes_path));
         int i = 0;
-        for(String usedClass : trainClasses) {
+        for(String usedClass : availableClasses) {
             if(usedClass.length() > 1) {
                 i++;	
             	bw.write(usedClass.trim() + " => " + i + "\n");

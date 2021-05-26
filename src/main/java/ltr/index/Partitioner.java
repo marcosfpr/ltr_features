@@ -33,7 +33,7 @@ public class Partitioner implements Iterable<List<File>> {
     }
 
     public Partitioner(String corpus, String prefixFilter, int chunkSize) throws FileNotFoundException {
-        this(corpus, prefixFilter, chunkSize, ".xml");
+        this(corpus, prefixFilter, chunkSize, "");
     }
 
     public Map<Integer, List<File>> concurrentMap() {
@@ -62,7 +62,7 @@ public class Partitioner implements Iterable<List<File>> {
     }
 
     public List<File> getAllFiles() {
-        return FileExtraction.getAllFiles(new File(this.corpus), this.prefixFilter, ".xml");
+        return FileExtraction.getAllFiles(new File(this.corpus), this.prefixFilter, "");
     }
 
     public Iterator<List<File>> iterator() {

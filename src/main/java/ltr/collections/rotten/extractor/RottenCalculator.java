@@ -16,7 +16,7 @@ public class RottenCalculator extends FeaturesCalculator {
     public static void main(String[] args) throws Exception {
         FeaturesCalculator fc = new RottenCalculator(
             configFile.getProperty("FEATURE_PATH"),
-            configFile.getProperty("CORPUS_PATH"),
+            configFile.getProperty("CORPUS"),
             configFile.getProperty("INDEX"),
             configFile.getProperty("CONCEPT"),
             configFile.getProperty("CLASSES_PATH")

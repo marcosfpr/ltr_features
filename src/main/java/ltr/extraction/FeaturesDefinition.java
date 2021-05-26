@@ -1,11 +1,15 @@
 package ltr.extraction;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -34,10 +38,13 @@ public abstract class FeaturesDefinition {
     protected Map<String,Feature> parentsNum;
     protected Map<String,Feature> childrenNum;
 
+    protected Map<String,Feature> tf;
+    protected Map<String,Feature> idf;
+
     protected Map<Integer, String> indexToClass; // indice do lucene -> classID (id do genero)
     protected Map<String, String> mapClassToId; // class -> indice
     protected Map<String, Integer> docToIndex; // docID -> indice do lucene
-
+    protected Map<String, String> classToTitle; // class -> title
 
     /**
      * Pesquisa o conteudo do documento (indice original) no corpo do conceito de
@@ -151,31 +158,41 @@ public abstract class FeaturesDefinition {
      * @throws IOException 
      */
     public Map<String, Feature> tfFeature(QueryDocument doc) throws IOException {
-		Map<String, Feature> docFrequencies = new HashMap<String, Feature>();
-    	
-		TFIDFSimilarity tfidfSIM = new DefaultSimilarity();
-     
-		 for (Map.Entry<String, String> entry : this.mapClassToId.entrySet())
-		 {
-			 String[] words = entry.getKey().split("&");
+		
+        if(tf == null) {
+            this.tf =  new HashMap<String, Feature>();
+            this.idf =  new HashMap<String, Feature>();
 
-			 Terms termVector = this.documentReader.getTermVector(this.docToIndex.get(doc.getId()), "TEXT");
-	         TermsEnum itr = termVector.iterator(null);
-	         BytesRef text = null;
-	         float freq = 0;
+            TFIDFSimilarity tfidfSIM = new DefaultSimilarity();
+        
+            for (Map.Entry<String, String> entry : this.mapClassToId.entrySet())
+            {
+                double tfv = 0;
+                double idfv = 0;
+                String[] words = entry.getKey().split("&");
+                Terms termVector = this.documentReader.getTermVector(this.docToIndex.get(doc.getId()), "TEXT");
+                TermsEnum itr = termVector.iterator(null);
+                BytesRef text = null;
+                
+                while ((text = itr.next()) != null) {
+                    Term termInstance = new Term("TEXT", text.utf8ToString());    
+                
+                    DocsEnum docs = itr.docs(MultiFields.getLiveDocs(this.documentReader), null);
+                    while(docs.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+                        tfv += tfidfSIM.tf(docs.freq());
 
-	         while((text = itr.next()) != null) {
-	        	 String term = text.utf8ToString();
-	        	 for(String word : words){
-                     if(word.trim().toLowerCase().contains(term.trim().toLowerCase()))
-	        		    freq++;
-	        	 }
-	         }
-             float tf = tfidfSIM.tf( freq );
-             docFrequencies.put(entry.getValue(), new Feature("tfClassDoc", (double)tf, entry.getValue()));     
-		 }
+                        idfv = tfidfSIM.idf(this.documentReader.docFreq(termInstance) ,this.documentReader.numDocs());
+                        idf.put(entry.getValue(), new Feature("idfClass", (double)idfv, entry.getValue()));
+
+                    }
+                }
+
+                tf.put(entry.getValue(), new Feature("tfClassDoc", (double)tfv/words.length, entry.getValue()));     
+            }
     
-		return docFrequencies;
+        }
+
+        return tf;
     }
     
     /**
@@ -226,29 +243,27 @@ public abstract class FeaturesDefinition {
     	     
 		 for (Map.Entry<String, String> entry : this.mapClassToId.entrySet())
 		 {
-			 String[] words = entry.getKey().split("&");
-			 
-             boolean or_clause = false;
+            int idx = this.docToIndex.get(entry.getValue()).intValue();
 
-			 Terms termVector = this.documentReader.getTermVector(this.docToIndex.get(doc.getId()), "TEXT");
-	         TermsEnum itr = termVector.iterator(null);
-	         BytesRef text = null;
-	         
-             while((text = itr.next()) != null && or_clause != true) {
+            Terms terms = this.documentReader.getTermVector(idx, "TITLE");
+			TermsEnum termsEnum = terms.iterator(null);
+            
+	        BytesRef text = null;
+	        List<String> words = new ArrayList<String>();
+
+            while((text = termsEnum.next()) != null) {
                 String term = text.utf8ToString();
-                
-                for(String word : words){
-                    if(word.contains(term)){
-                        or_clause = true;
-                        break;
-                    }
-                }
-	        	 
-	         }
+                words.add(term);
+            }
 
-             double sim = or_clause ? 1.0 : 0.0;
+            boolean or_clause = false;         
+            
+            if ( Arrays.asList(doc.getText().split(" ")).stream().filter(s -> words.contains(s)).toArray().length > 0 )
+                or_clause = true;
+
+            double sim = or_clause ? 1.0 : 0.0;
 	         
-             docBoolean.put(entry.getValue(), new Feature("booleanDoc", (double)sim, entry.getValue()));     
+            docBoolean.put(entry.getValue(), new Feature("booleanDoc", (double)sim, entry.getValue()));     
 		 }
 	
 		return docBoolean;

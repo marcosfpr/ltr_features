@@ -2,6 +2,7 @@ package ltr.features;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class FeatureNormalizer {
     public static HashMap<String, Feature> normalize(Map<String, Feature> features) {
@@ -22,5 +23,15 @@ public class FeatureNormalizer {
             normalizedFeatures.put(ent.getKey(), f);
         }
         return normalizedFeatures;
+    }
+    public static  Map<Integer,Map<String,Feature>> oneQueryNormalizer(Map<Integer,Map<String, Feature>> features){
+
+        Map<Integer,Map<String,Feature>> NormalizedFeatures = new TreeMap<>();
+        for(Map.Entry<Integer,Map<String,Feature>> ent : features.entrySet())
+        {
+            NormalizedFeatures.put(ent.getKey(), normalize(ent.getValue()));
+        }
+        return NormalizedFeatures;
+
     }
 }

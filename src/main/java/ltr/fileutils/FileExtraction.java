@@ -24,7 +24,8 @@ public class FileExtraction {
                 docs.addAll(getAllFiles(file, prefix, extension));
             }
             else{
-                if(prefix.isEmpty() || ( file.getName().startsWith(prefix) && file.getName().endsWith(extension)) )
+                //  (prefix.isEmpty() && file.getName().endsWith(extension))
+                if( prefix.isEmpty() || ( file.getName().startsWith(prefix) && file.getName().endsWith(extension)))
                     docs.add(file);
             }
         }
