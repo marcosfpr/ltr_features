@@ -1,6 +1,8 @@
-# Projeto de extração de Features para LTR
-- [ ] Extração de Features genéricas para LTR
-- [ ] Benchmark Rotten
+# Feature extraction for LTR techniques and MLTC
+
+- Reuters
+- JRC-Acquis
+- Rotten Tommatoes
 
 
-- Thanks, Hosein!
+Acknowledgement: Hosein Azarbonyad.
