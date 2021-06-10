@@ -45,9 +45,9 @@ public class EuroVocSplitData {
     public static void main(String[] args) throws IOException {
         EuroVocSplitData splitter = new EuroVocSplitData();
         splitter.split(
-                configFile.getProperty("CORPUS"),
-                configFile.getProperty("CORPUS_ML_PATH"),
-                configFile.getProperty("CORPUS_EVAL_PATH")
+                configFile.getProperty("CORPUS_JRC"),
+                configFile.getProperty("TRAIN_JRC"),
+                configFile.getProperty("TEST_JRC")
         );
     }
 }

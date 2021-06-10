@@ -52,21 +52,21 @@ public abstract class FeaturesCalculator {
     public static String featuresPath;
     public static ReentrantLock accessFile = new ReentrantLock();
 
-    public static final FeaturesType[] usedFeatures = new FeaturesType[] { FeaturesType.POPULARITY,
-            FeaturesType.POPULARITY, // FeaturesType.BOOLEAN, FeaturesType.TF, FeaturesType.IDF, FeaturesType.CLASS_FREQUENCY,
-            FeaturesType.SIM_TXT_TXT_LMD, FeaturesType.SIM_TXT_TXT_LMJ, FeaturesType.SIM_TXT_TXT_BM25,// FeaturesType.SIM_TXT_TXT_VM,
-            FeaturesType.SIM_TXT_TIT_LMD, FeaturesType.SIM_TXT_TIT_LMJ, FeaturesType.SIM_TXT_TIT_BM25, //FeaturesType.SIM_TXT_TIT_VM,
-            FeaturesType.SIM_TIT_TXT_LMD, FeaturesType.SIM_TIT_TXT_LMJ, FeaturesType.SIM_TIT_TXT_BM25, //FeaturesType.SIM_TIT_TXT_VM,
-            FeaturesType.SIM_TIT_TIT_LMD, FeaturesType.SIM_TIT_TIT_LMJ, FeaturesType.SIM_TIT_TIT_BM25, //FeaturesType.SIM_TIT_TIT_VM,
-            /*
-             * FeaturesType.SIM_TXT_DESC_LMD, FeaturesType.SIM_TXT_DESC_LMJ,
-             * FeaturesType.SIM_TXT_DESC_BM25, FeaturesType.SIM_TXT_UNDESC_LMD,
-             * FeaturesType.SIM_TXT_UNDESC_LMJ, FeaturesType.SIM_TXT_UNDESC_BM25,
-             * FeaturesType.SIM_TIT_DESC_LMD, FeaturesType.SIM_TIT_DESC_LMJ,
-             * FeaturesType.SIM_TIT_DESC_BM25, FeaturesType.SIM_TIT_UNDESC_LMD,
-             * FeaturesType.SIM_TIT_UNDESC_LMJ, FeaturesType.SIM_TIT_UNDESC_BM25,
-             * FeaturesType.PARENTS, FeaturesType.CHILDREN
-             */
+    public static final FeaturesType[] usedFeatures = new FeaturesType[] {
+            FeaturesType.POPULARITY, FeaturesType.BOOLEAN, FeaturesType.TF, FeaturesType.IDF, FeaturesType.CLASS_FREQUENCY,
+            FeaturesType.SIM_TXT_TXT_LMD, FeaturesType.SIM_TXT_TXT_BM25, FeaturesType.SIM_TXT_TXT_LMJ,
+            FeaturesType.SIM_TXT_TIT_LMD, FeaturesType.SIM_TXT_TIT_BM25, FeaturesType.SIM_TXT_TIT_LMJ,
+            FeaturesType.SIM_TIT_TXT_LMD, FeaturesType.SIM_TIT_TXT_BM25, FeaturesType.SIM_TIT_TXT_LMJ,
+            FeaturesType.SIM_TIT_TIT_LMD, FeaturesType.SIM_TIT_TIT_BM25,  FeaturesType.SIM_TIT_TIT_LMJ,
+            FeaturesType.SIM_TXT_TXT_VM , FeaturesType.SIM_TXT_TIT_VM , FeaturesType.SIM_TIT_TXT_VM, FeaturesType.SIM_TIT_TIT_VM,
+            FeaturesType.SIM_TXT_DESC_LMD, FeaturesType.SIM_TXT_DESC_LMJ,
+            FeaturesType.SIM_TXT_DESC_BM25, FeaturesType.SIM_TXT_UNDESC_LMD,
+            FeaturesType.SIM_TXT_UNDESC_LMJ, FeaturesType.SIM_TXT_UNDESC_BM25,
+            FeaturesType.SIM_TIT_DESC_LMD, FeaturesType.SIM_TIT_DESC_LMJ,
+            FeaturesType.SIM_TIT_DESC_BM25, FeaturesType.SIM_TIT_UNDESC_LMD,
+            FeaturesType.SIM_TIT_UNDESC_LMJ, FeaturesType.SIM_TIT_UNDESC_BM25,
+            FeaturesType.PARENTS, FeaturesType.CHILDREN
+            
     };
 
     /**
